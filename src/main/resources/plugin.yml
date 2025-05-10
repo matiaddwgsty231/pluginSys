@@ -1,0 +1,53 @@
+name: SystemPlugin
+version: 1.0.2
+main: Sp.System.SystemPlugin
+author: Contratos
+api-version: 1.13
+commands:
+  system:
+    description: Comando principal del sistema.
+    usage: /system
+  spawn:
+    description: Teletransportarse al área inicial.
+    usage: /spawn
+  Tienda:
+    description: Acceso a la tienda.
+    usage: /Tienda
+  Fly:
+    description: Activar/desactivar modo vuelo.
+    usage: /Fly
+  enderchest:
+    description: Abrir el EnderChest.
+    usage: /enderchest
+    aliases:
+      - ec
+  tienda:
+    description: Acceso a la tienda.
+    usage: /tienda
+  togglezone:
+    description: Activa o desactiva zonas específicas.
+    usage: /togglezone
+  tpa:
+    description: Enviar una solicitud de teletransporte a otro jugador.
+    usage: /tpa <jugador>
+  tpaccept:
+    description: Aceptar una solicitud de teletransporte.
+    usage: /tpaccept
+  tpdeny:
+    description: Rechazar una solicitud de teletransporte.
+    usage: /tpdeny
+  tpyes:
+    description: Alternativa para aceptar solicitudes de teletransporte.
+    usage: /tpyes
+  tpno:
+    description: Alternativa para rechazar solicitudes de teletransporte.
+    usage: /tpno
+  warp:
+    description: Teletransportarse a un warp específico.
+    usage: /warp <warp>
+  warpcreate:
+    description: Crear un nuevo warp.
+    usage: /warpcreate <nombre>
+  reloadwarp:
+    description: Recargar la configuración de los warps.
+    usage: /reloadwarp

@@ -1,0 +1,17 @@
+zones:
+  zone1:
+    world: "world"
+    x1: 100
+    y1: 50
+    z1: 100
+    x2: 200
+    y2: 70
+    z2: 200
+  zone2:
+    world: "world"
+    x1: 300
+    y1: 50
+    z1: 300
+    x2: 400
+    y2: 70
+    z2: 400

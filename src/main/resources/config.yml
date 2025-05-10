@@ -1,0 +1,85 @@
+prefix: "&f[&a&lMinelucky&f] "
+
+
+push_strength:
+  horizontal: 10.0
+  vertical: 0.05
+
+
+spawn:
+  world: "world"
+  x: -7
+  y: 138
+  z: 82
+  yaw: -180
+  pitch: 0
+times:
+  preparationTime: 5
+  damageCooldownTime: 30
+  cooldownTime: 10
+
+zone:
+  enabled: true
+  world: "world"
+  x1: 52.500          # Esquina 1 (X, Y, Z)
+  y1: 180
+  z1: -0.500
+  x2: -73.500      # Esquina 2 (X, Y, Z)
+  y2: 126
+  z2: 157.500
+
+Message_Spawn:
+  SpawnSet: "&a¡Ubicación del Spawn establecida correctamente!"
+  SpawnNoOnUser: "&cEl jugador no esta conectado"
+  SpawnTP: "&a¡Has sido teletransportado al Spawn!"
+  CooldownSpawn: "&c¡Debes esperar %CooldownTime% segundos para usar este comando nuevamente!"
+  SpawnCancel: "&c¡Te has movido! Teletransportación cancelada."
+  SpawnTime: "&aTeletransportándote en %Time% segundos. ¡No te muevas!"
+  SpawnTimeTag: "&cNo puedes usar este comando porque has recibido daño. Intenta de nuevo en %TimeTag% segundos."
+  No_Perms: "&cNo tienes permiso para hacer eso."
+  SpawnCountdown: "&aQuedan &e%Time% &as para teletransportarte al spawn."
+
+Messages_Invsee:
+  No_Perms: "&c¡No tienes permiso para usar este comando!"
+  Incorrect_Usage: "&eUso: /invsee &a<jugador>"
+  Player_Offline: "&cEl jugador especificado no está en línea."
+  Self_Inventory_Error: "&c¡No puedes revisar tu propio inventario!"
+  Inventory_Title: "&6Inventario de &e%player%"
+
+Message_EnderChest:
+  Open_EnderChest: "&aSe ha abierto tu EnderChest."
+  No_Perms: "&cNo tienes permiso para hacer eso."
+
+Message_Fly:
+  No_Perms: "&cNo tienes permiso para hacer eso."
+  Error_Player_No_On: "&cEl jugador %OtrePlayer% no está conectado."
+  Uso_Incorrecto_Fly: "&cUso incorrecto. Usa: /fly [jugador]"
+  Fly_On: "&aVuelo activado."
+  Fly_Off: "&cVuelo desactivado."
+  Fly_On_Otre: "&aHas activado el vuelo de  %OtrePlayer% ."
+  Fly_Off_Otre: "&aHas desactivado el vuelo de %OtrePlayer% ."
+
+Message_Store:
+  Tienda:
+    - "&aTienda.enlace.com"
+    -
+messages_System:
+  No_Perms: "&cNo tienes permiso para hacer eso."
+  reloadMessage: "&aConfiguración recargada correctamente."
+
+chat:
+  message: "&cNo puedes usar lenguaje ofensivo en el chat."
+  banned_words:
+    - "puto"
+    - "pendejo"
+    - "down"
+
+Config:
+  welcome_message:
+    enabled: true
+    message:
+      - "&e&l                          "
+      - "&eBienvenido &7%player%       "
+      - "&fYa puedes jugar en tu server"
+      - "&e&l                          "
+

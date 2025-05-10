@@ -1,0 +1,38 @@
+TITLE: Warps
+SIZE: 54
+
+WARP:
+  COOLDOWN: 5
+  COMBAT: '&7[&4Combat&7] &fYou can''t use warps while you are in Combat. Time left &f{combat}'
+  TELEPORTING-ALREADY: '&cYou are already teleporting to a warp location.'
+  CANCEL: '&cYou''ve moved! Teleportation to warp has been cancelled.'
+  TELEPORTED: '&aSuccessfully teleported to &a&l{warp}&a.'
+  TELEPORTING: '&aTeleporting in {time} seconds...'
+  NoPermCrate: '&cYou don''t have permission to do that.'
+  NoPerm: 'You don''t have permission to use this warp!'
+
+ITEMS:
+  Spawn:
+    MATERIAL: ENDER_PEARL
+    SLOT: 21
+    NAME: '&7&lSpawn'
+    LORE:
+      - '&7'
+      - '&f| &7Esta es una &LZona SEGURA &7donde'
+      - '&f| &7no te pueden matar ni hacer daño.'
+      - ''
+      - '&e➦ Click to teleport'
+    PERMISSION-REQUIRED: false
+    PERMISSION: warp.spawn
+    warp: true
+    WORLD: Lobby
+    X: -6.5
+    Y: 138
+    Z: 82.5
+    YAW: -180
+    PITCH: 0
+    command: false
+    COMMANDS:
+      - '{player} warp spawn3'
+      - '{console} afk'
+      - '{player} warp spawn1'
