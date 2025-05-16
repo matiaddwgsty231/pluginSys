@@ -62,17 +62,9 @@ Message_Fly:
 Message_Store:
   Tienda:
     - "&aTienda.enlace.com"
-    -
 messages_System:
   No_Perms: "&cNo tienes permiso para hacer eso."
   reloadMessage: "&aConfiguración recargada correctamente."
-
-chat:
-  message: "&cNo puedes usar lenguaje ofensivo en el chat."
-  banned_words:
-    - "puto"
-    - "pendejo"
-    - "down"
 
 Config:
   welcome_message:
@@ -83,3 +75,19 @@ Config:
       - "&fYa puedes jugar en tu server"
       - "&e&l                          "
 
+
+scoreboard:
+  enabled: true
+  lines:
+    - "&6Monedas: &a%system_coins%"
+
+
+recolector:
+  material: CHEST
+  nombre: "&6Recolector de Chunk"
+  lore:
+    - "&7Recoge todos los ítems del chunk."
+    - "&7Haz clic derecho para abrir el menú."
+  autosell:
+    habilitado: true
+    precio_por_item: 10.0

@@ -1,5 +1,6 @@
 package Sp.System.listeners;
 
+import Sp.System.Manager.ZonaManger;
 import Sp.System.utils.MessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -19,7 +20,7 @@ import java.util.Set;
 
 public class ElytraRestrictionListener implements Listener {
 
-    private final Set<Zona> zonasRestringidas = new HashSet<>();
+    private final Set<ZonaManger> zonasRestringidas = new HashSet<>();
     private final Set<Player> jugadoresAvisados = new HashSet<>(); // Para evitar spam de mensajes
     private final String mensajeRestriccion;
     private final String prefijo;
@@ -55,7 +56,7 @@ public class ElytraRestrictionListener implements Listener {
             double z2 = config.getDouble("zones." + zoneKey + ".z2");
 
             // Crear una nueva zona con los datos cargados
-            zonasRestringidas.add(new Zona(worldName, x1, y1, z1, x2, y2, z2));
+            zonasRestringidas.add(new ZonaManger(worldName, x1, y1, z1, x2, y2, z2));
         }
     }
 
@@ -89,9 +90,9 @@ public class ElytraRestrictionListener implements Listener {
             // Verifica si el jugador tiene las élitros y está en una zona restringida
             if (jugador.getInventory().getChestplate() != null
                     && jugador.getInventory().getChestplate().getType() == Material.ELYTRA) {
-                for (Zona zona : zonasRestringidas) {
+                for (ZonaManger zonaManger : zonasRestringidas) {
                     // Verifica si el jugador está dentro de los límites de la zona
-                    if (zona.estaDentro(jugador.getLocation())) {
+                    if (zonaManger.estaDentro(jugador.getLocation())) {
                         // Cancela el planeo y envía un mensaje solo una vez
                         event.setCancelled(true);
                         jugador.setGliding(false);
@@ -124,9 +125,9 @@ public class ElytraRestrictionListener implements Listener {
         if (chestplate != null && chestplate.getType() == Material.ELYTRA) {
             boolean estaEnZona = false;
 
-            for (Zona zona : zonasRestringidas) {
+            for (ZonaManger zonaManger : zonasRestringidas) {
                 // Verificar si el jugador está dentro de la zona actual
-                if (zona.estaDentro(event.getTo())) {
+                if (zonaManger.estaDentro(event.getTo())) {
                     estaEnZona = true;
 
                     // Si el jugador no ha sido avisado antes, le enviamos el mensaje

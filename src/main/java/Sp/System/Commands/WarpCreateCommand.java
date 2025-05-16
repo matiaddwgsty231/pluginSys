@@ -7,6 +7,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.Location;
+
+import java.util.Arrays;
 
 public class WarpCreateCommand implements CommandExecutor {
 
@@ -24,10 +27,11 @@ public class WarpCreateCommand implements CommandExecutor {
         }
 
         if (args.length < 4) {
-            sender.sendMessage("§cUso: /warpcreate <nombre> <tipo> <slot> <permiso>");
+            sender.sendMessage("§cUso: /warpcreate <nombre> <warp/command> <slot> <permiso>");
             return true;
         }
 
+        Player player = (Player) sender;
         String warpName = args[0];
         String type = args[1].toLowerCase(); // "warp" o "command"
         int slot;
@@ -46,11 +50,32 @@ public class WarpCreateCommand implements CommandExecutor {
         warpsConfig.set(path + ".MATERIAL", "ENDER_PEARL");
         warpsConfig.set(path + ".SLOT", slot);
         warpsConfig.set(path + ".NAME", "&7&l" + warpName);
-        warpsConfig.set(path + ".LORE", java.util.Arrays.asList("&7", "&e➦ Click to teleport"));
+        warpsConfig.set(path + ".LORE", Arrays.asList("&7", "&e➦ Click to teleport"));
         warpsConfig.set(path + ".PERMISSION-REQUIRED", true);
         warpsConfig.set(path + ".PERMISSION", permission);
-        warpsConfig.set(path + ".warp", type.equals("warp"));
-        warpsConfig.set(path + ".command", type.equals("command"));
+
+        if (type.equals("warp")) {
+            warpsConfig.set(path + ".warp", true);
+            warpsConfig.set(path + ".command", false);
+
+            // Obtener la ubicación del jugador
+            Location location = player.getLocation();
+            warpsConfig.set(path + ".WORLD", location.getWorld().getName());
+            warpsConfig.set(path + ".X", location.getX());
+            warpsConfig.set(path + ".Y", location.getY());
+            warpsConfig.set(path + ".Z", location.getZ());
+            warpsConfig.set(path + ".YAW", location.getYaw());
+            warpsConfig.set(path + ".PITCH", location.getPitch());
+        } else if (type.equals("command")) {
+            warpsConfig.set(path + ".warp", false);
+            warpsConfig.set(path + ".command", true);
+
+            // Agregar comandos predeterminados
+            warpsConfig.set(path + ".COMMANDS", Arrays.asList("{console} command", "{player} command"));
+        } else {
+            sender.sendMessage("§cEl tipo debe ser 'warp' o 'command'.");
+            return true;
+        }
 
         // Guardar la configuración
         plugin.saveCustomConfig("warps.yml");

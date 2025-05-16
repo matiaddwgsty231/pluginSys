@@ -47,7 +47,16 @@ commands:
     usage: /warp <warp>
   warpcreate:
     description: Crear un nuevo warp.
-    usage: /warpcreate <nombre>
+    usage: /warpcreate <nombre> <warp/command> <slot> <permiso>
   reloadwarp:
     description: Recargar la configuración de los warps.
     usage: /reloadwarp
+  coins:
+    description: Muestra la cantidad de monedas que tienes.
+    usage: /coins
+  givecoins:
+    description: Da monedas a un jugador.
+    usage: /givecoins <jugador> <cantidad>
+  giverecolector:
+    description: Da un recolector a un jugador.
+    usage: /giverecolector <jugador> <cantidad>

@@ -2,6 +2,7 @@ TITLE: Warps
 SIZE: 54
 
 WARP:
+  TELEPORT_DELAY: 10
   COOLDOWN: 5
   COMBAT: '&7[&4Combat&7] &fYou can''t use warps while you are in Combat. Time left &f{combat}'
   TELEPORTING-ALREADY: '&cYou are already teleporting to a warp location.'
@@ -9,7 +10,7 @@ WARP:
   TELEPORTED: '&aSuccessfully teleported to &a&l{warp}&a.'
   TELEPORTING: '&aTeleporting in {time} seconds...'
   NoPermCrate: '&cYou don''t have permission to do that.'
-  NoPerm: 'You don''t have permission to use this warp!'
+  NoPerm: '&cYou don''t have permission to use this warp!'
 
 ITEMS:
   Spawn:
@@ -24,15 +25,40 @@ ITEMS:
       - '&e➦ Click to teleport'
     PERMISSION-REQUIRED: false
     PERMISSION: warp.spawn
-    warp: true
-    WORLD: Lobby
-    X: -6.5
-    Y: 138
-    Z: 82.5
-    YAW: -180
-    PITCH: 0
-    command: false
+    command: true
     COMMANDS:
-      - '{player} warp spawn3'
-      - '{console} afk'
-      - '{player} warp spawn1'
+      - '{player} command'
+      - '{console} command'
+      - '{player} command'
+      -
+  CustomHeadWarp:
+    MATERIAL: HD-12345
+    SLOT: 10
+    NAME: "&6Cabeza personalizada"
+    LORE:
+      - "&7Una cabeza especial"
+    PERMISSION-REQUIRED: false
+    PERMISSION: warp.customhead
+    warp: true
+    WORLD: world
+    X: 0
+    Y: 64
+    Z: 0
+    YAW: 0
+    PITCH: 0
+
+  StoneWarp:
+    MATERIAL: STONE
+    SLOT: 11
+    NAME: "&7Warp de piedra"
+    LORE:
+      - "&7Un warp con material normal"
+    PERMISSION-REQUIRED: false
+    PERMISSION: warp.stone
+    warp: true
+    WORLD: world
+    X: 10
+    Y: 64
+    Z: 10
+    YAW: 0
+    PITCH: 0

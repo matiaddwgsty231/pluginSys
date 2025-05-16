@@ -1,12 +1,12 @@
-package Sp.System.listeners;
+package Sp.System.Manager;
 
 import org.bukkit.Location;
 
-public class Zona {
+public class ZonaManger {
     private final String worldName;
     private final double x1, y1, z1, x2, y2, z2;
 
-    public Zona(String worldName, double x1, double y1, double z1, double x2, double y2, double z2) {
+    public ZonaManger(String worldName, double x1, double y1, double z1, double x2, double y2, double z2) {
         this.worldName = worldName;
         this.x1 = x1;
         this.y1 = y1;

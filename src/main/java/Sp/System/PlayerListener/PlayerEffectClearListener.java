@@ -1,4 +1,4 @@
-package Sp.System.listeners;
+package Sp.System.PlayerListener;
 
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
@@ -19,10 +19,15 @@ public class PlayerEffectClearListener implements Listener {
         }
 
         Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("SystemPlugin"), () -> {
-            player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20.0);
+            if (player.getAttribute(Attribute.GENERIC_MAX_HEALTH) != null) {
+                player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20.0);
+            }
 
-            player.setAbsorptionAmount(0.0);
+            try {
+                player.getClass().getMethod("setAbsorptionAmount", double.class).invoke(player, 0.0);
+            } catch (Exception e) {
+                // Método no disponible, ignorar o manejar según sea necesario
+            }
         }, 1L);
-
     }
 }

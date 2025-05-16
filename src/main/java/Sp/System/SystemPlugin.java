@@ -1,10 +1,17 @@
 package Sp.System;
 
 import Sp.System.Commands.*;
+import Sp.System.Manager.*;
+import Sp.System.PlayerListener.*;
+import Sp.System.Recolector.*;
 import Sp.System.Tasks.*;
 import Sp.System.listeners.*;
 import Sp.System.utils.*;
+
+import Sp.System.placeholders.CoinsPlaceholder;
+
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -25,20 +32,34 @@ public class SystemPlugin extends JavaPlugin {
     private File zonesFile;
     private FileConfiguration zonesConfig;
 
+    private RecolectorManager recolectorManager;
+
+    private CoinsManager coinsManager;
+
     @Override
     public void onEnable() {
         instance = this;
         saveDefaultConfig();
         setupConfigFiles();
 
+        recolectorManager = new RecolectorManager(getConfig());
         ElytraRestrictionListener listener = new ElytraRestrictionListener();
+        Bukkit.getPluginManager().registerEvents(new PlayerKillListener(coinsManager), this);
         Bukkit.getServer().getPluginManager().registerEvents(listener, this);
+
         this.zoneListener = new ZoneListener(this);
         this.timeWorld = new TimeWorld(this);
+
+        coinsManager = new CoinsManager();
+        coinsManager.loadCoins();
+        timeWorld.startKeepDayTask();
+
         registerCommands();
         registerEvents();
 
-        timeWorld.startKeepDayTask();
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new CoinsPlaceholder(this).register();
+        }
 
         Bukkit.getConsoleSender().sendMessage(MessageUtils.getColoredMessage(
                 prefix + "&7Ha sido Activado &fVersión " + getDescription().getVersion()
@@ -47,13 +68,12 @@ public class SystemPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (coinsManager != null) {
+            coinsManager.saveCoins();
+        }
         Bukkit.getConsoleSender().sendMessage(MessageUtils.getColoredMessage(
                 prefix + "&7Ha sido Desactivado"
         ));
-
-        saveConfig();
-        saveCustomConfig("warps.yml");
-        saveCustomConfig("zones.yml");
         instance = null;
     }
 
@@ -71,7 +91,10 @@ public class SystemPlugin extends JavaPlugin {
         getCommand("tpno").setExecutor(new CommandHandler(this));
         getCommand("warp").setExecutor(new WarpCommand(this));
         getCommand("warpcreate").setExecutor(new WarpCreateCommand(this));
-        getCommand("reloadwarp").setExecutor(new ReloadWarpCommand(this)); // Asegúrate de que esta clase exista
+        getCommand("reloadwarp").setExecutor(new ReloadWarpCommand(this));
+        getCommand("givecoins").setExecutor(new GiveCoinsCommand(this));
+        getCommand("coins").setExecutor(new CoinsCommand(this));
+        getCommand("giverecolector").setExecutor(new GiveRecolectorCommand(recolectorManager.getRecolector()));
     }
 
     private void registerEvents() {
@@ -80,7 +103,8 @@ public class SystemPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerEffectClearListener(), this);
         getServer().getPluginManager().registerEvents(timeWorld, this);
         getServer().getPluginManager().registerEvents(new ElytraRestrictionListener(), this);
-        getServer().getPluginManager().registerEvents(new WarpClickListener(this), this); // Cambiado para aceptar SystemPlugin
+        getServer().getPluginManager().registerEvents(new WarpClickListener(this), this);
+        getServer().getPluginManager().registerEvents(recolectorManager.getRecolector(), this);
     }
 
     private void setupConfigFiles() {
@@ -140,7 +164,15 @@ public class SystemPlugin extends JavaPlugin {
         }
     }
 
+    public static NamespacedKey getWarpKey() {
+        return new NamespacedKey(getInstance(), "warp_key");
+    }
+
     public static SystemPlugin getInstance() {
         return instance;
+    }
+
+    public CoinsManager getCoinsManager() {
+        return coinsManager;
     }
 }
