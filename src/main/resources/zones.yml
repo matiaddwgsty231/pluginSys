@@ -1,12 +1,12 @@
-zones:
+zones: # Configuración de zonas (Estas zonas desactivan el uso de elitras) se pueden crear varias zonas
   zone1:
-    world: "world"
-    x1: 100
-    y1: 50
-    z1: 100
-    x2: 200
-    y2: 70
-    z2: 200
+    world: "world" # Nombre del mundo donde se encuentra la zona
+    x1: 100 # Coordenada X1 de la zona
+    y1: 50 # coordenada Y1 de la zona
+    z1: 100 # Coordenada Z1 de la zona
+    x2: 200 # Coordenada X2 de la zona
+    y2: 70 # Coordenada Y2 de la zona
+    z2: 200 # Coordenada Z2 de la zona
   zone2:
     world: "world"
     x1: 300

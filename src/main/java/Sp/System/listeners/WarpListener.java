@@ -1,72 +1,85 @@
-package Sp.System.Listeners;
+package Sp.System.listeners;
 
 import Sp.System.Commands.WarpCommand;
 import Sp.System.SystemPlugin;
-import Sp.System.utils.MessageUtils;
-import org.bukkit.Bukkit;
+import Sp.System.Manager.ActionBarManager;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
 
 public class WarpListener implements Listener {
 
     private final SystemPlugin plugin;
     private final WarpCommand warpCommand;
+    private final ActionBarManager actionBarManager;
 
     public WarpListener(SystemPlugin plugin, WarpCommand warpCommand) {
         this.plugin = plugin;
         this.warpCommand = warpCommand;
+        this.actionBarManager = new ActionBarManager(plugin); // Instancia de ActionBarManager
     }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (!(event.getWhoClicked() instanceof Player)) return;
+        Player player = (Player) event.getWhoClicked();
 
-        if (event.getCurrentItem() == null || event.getCurrentItem().getType().isAir()) return;
+        if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) return;
+        if (event.getView() == null || !event.getView().getTitle().contains("Warps")) return;
 
-        if (event.getClickedInventory() == null || !event.getView().getTitle().contains("Warps")) return;
+        event.setCancelled(true); // Cancelar el click para que no mueva el item
 
-        event.setCancelled(true); // Prevenir mover ítems
+        ItemMeta meta = event.getCurrentItem().getItemMeta();
+        if (meta == null) return;
+        if (!(meta instanceof PersistentDataHolder)) return; // Validar soporte
 
-        ItemStack item = event.getCurrentItem();
-        ItemMeta meta = item.getItemMeta();
+        PersistentDataHolder holder = (PersistentDataHolder) meta;
+        PersistentDataContainer container = holder.getPersistentDataContainer();
 
-        if (meta == null || !(meta instanceof org.bukkit.persistence.PersistentDataHolder)) return;
-
-        PersistentDataContainer container = ((PersistentDataHolder) meta).getPersistentDataContainer();
         if (!container.has(SystemPlugin.getWarpKey(), PersistentDataType.STRING)) return;
 
-        String value = container.get(SystemPlugin.getWarpKey(), PersistentDataType.STRING);
+        String data = container.get(SystemPlugin.getWarpKey(), PersistentDataType.STRING);
+        if (data == null) return;
 
+        if (data.startsWith("menu:")) {
+            String menu = data.substring(5);
+            // Aquí abre el menú usando tu método para abrir inventarios
+            plugin.getWarpCommand().openWarpInventory(player, plugin.getCustomConfig("warps.yml"), menu);
+            return;
+        }
+
+        // Si no es menú, es warp, verificar existencia
         FileConfiguration warpsConfig = plugin.getCustomConfig("warps.yml");
-
-        if (value.startsWith("menu:")) {
-            String targetMenu = value.substring(5);
-            warpCommand.onCommand(player, null, "warp", new String[]{targetMenu});
+        String path = "ITEMS." + data;
+        if (!warpsConfig.contains(path)) {
+            player.sendMessage("§cEl warp '" + data + "' no existe.");
             return;
         }
 
-        // Si está en cooldown
-        if (warpCommand.isInCooldown(player)) {
-            long timeLeft = warpCommand.getCooldownTimeLeft(player);
-            player.sendMessage(MessageUtils.getColoredMessage("&cDebes esperar " + timeLeft + " segundos para usar otro warp."));
+        // Verificar si se requiere permiso
+        boolean permissionRequired = warpsConfig.getBoolean(path + ".PERMISSION-REQUIRED", false);
+        String permission = warpsConfig.getString(path + ".PERMISSION", "");
+
+        if (permissionRequired && (permission == null || !player.hasPermission(permission))) {
+            player.sendMessage("§cNo tienes permiso para usar este warp.");
             return;
         }
 
-        // Ejecutar warp o comandos
-        if (warpsConfig.contains("ITEMS." + value + ".COMMANDS")) {
-            warpCommand.executeCommands(player, warpsConfig, value);
-        } else {
-            warpCommand.teleportPlayer(player, warpsConfig, value);
+        // Verificar cooldown
+        if (plugin.getWarpCommand().isInCooldown(player)) {
+            player.sendMessage("§cEspera " + plugin.getWarpCommand().getCooldownTimeLeft(player) + " segundos para usar otro warp.");
+            return;
         }
 
-        warpCommand.applyCooldown(player);
-        player.closeInventory();
+        plugin.getWarpCommand().teleportPlayer(player, warpsConfig, data, plugin.getTeleportCancelListener(), actionBarManager); // Se agrega ActionBarManager
+        plugin.getWarpCommand().executeCommands(player, warpsConfig, data);
+        plugin.getWarpCommand().applyCooldown(player);
     }
 }

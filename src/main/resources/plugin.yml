@@ -3,6 +3,7 @@ version: 1.0.2
 main: Sp.System.SystemPlugin
 author: Contratos
 api-version: 1.13
+
 commands:
   system:
     description: Comando principal del sistema.
@@ -13,9 +14,6 @@ commands:
   Tienda:
     description: Acceso a la tienda.
     usage: /Tienda
-  Fly:
-    description: Activar/desactivar modo vuelo.
-    usage: /Fly
   enderchest:
     description: Abrir el EnderChest.
     usage: /enderchest
@@ -45,18 +43,22 @@ commands:
   warp:
     description: Teletransportarse a un warp específico.
     usage: /warp <warp>
+    aliases:
+      - warps
+      - Menu
+      - warpsmenu
   warpcreate:
     description: Crear un nuevo warp.
     usage: /warpcreate <nombre> <warp/command> <slot> <permiso>
   reloadwarp:
     description: Recargar la configuración de los warps.
     usage: /reloadwarp
-  coins:
-    description: Muestra la cantidad de monedas que tienes.
-    usage: /coins
-  givecoins:
-    description: Da monedas a un jugador.
-    usage: /givecoins <jugador> <cantidad>
-  giverecolector:
-    description: Da un recolector a un jugador.
-    usage: /giverecolector <jugador> <cantidad>
+  pmsg:
+    description: Envía un mensaje privado a un jugador.
+    usage: /pmsg <jugador> <mensaje>
+  actionbar:
+    description: Envía un mensaje al ActionBar.
+    usage: /actionbar <all|player> <mensaje>
+  hcreload:
+    description: Recargar la configuración del HideCommand.
+    usage: /hcreload

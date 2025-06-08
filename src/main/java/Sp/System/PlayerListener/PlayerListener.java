@@ -11,6 +11,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.block.Block;
 import org.bukkit.Material;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.util.Vector;
 
 
@@ -56,25 +57,49 @@ public class PlayerListener implements Listener {
             Bukkit.getLogger().warning("El mundo %word% no está disponible. El jugador no podrá ser teletransportado.".replace("%word%", String.valueOf(we)));
         }
     }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        event.setQuitMessage(null);
+    }
+
     @EventHandler
     public void onPressurePlateActivate(PlayerInteractEvent event) {
-
-        if (event.getClickedBlock() != null && event.getClickedBlock().getType() == Material.LIGHT_WEIGHTED_PRESSURE_PLATE) {
-            Player player = event.getPlayer();
-            Block plate = event.getClickedBlock();
-
-            Location playerLocation = player.getLocation();
-            Vector direction = playerLocation.getDirection();
-
-            double horizontalPushStrength = plugin.getConfig().getDouble("push_strength.horizontal");
-            double verticalPushStrength = plugin.getConfig().getDouble("push_strength.vertical");
-
-
-            if (player != null) {
-
-                direction.setY(verticalPushStrength);
-                player.setVelocity(direction.multiply(horizontalPushStrength));
-            }
+        if (event.getClickedBlock() == null
+                || event.getClickedBlock().getType() != Material.STONE_PRESSURE_PLATE) {
+            return;
         }
+
+        Player player = event.getPlayer();
+
+        //Obtener valores de configuración
+        double horizontal = plugin.getConfig().getDouble("push_strength.horizontal", 10.0);
+        double vertical = plugin.getConfig().getDouble("push_strength.vertical", 0.05);
+        String directionStr = plugin.getConfig().getString("push_direction", "NORTH").toUpperCase();
+
+        //Crear vector de dirección
+        Vector direction = new Vector(0, vertical, 0);
+
+        //Asignar dirección horizontal según la configuración
+        switch (directionStr) {
+            case "NORTH":
+                 direction.setZ(-horizontal);
+                 break;
+            case "SOUTH":
+                 direction.setZ(horizontal);
+                 break;
+            case "EAST":
+                 direction.setX(horizontal);
+                 break;
+            case "WEST":
+                 direction.setX(-horizontal);
+                 break;
+            default:
+                // Si la dirección no es válida, usar norte por defecto
+                direction.setZ(-horizontal);
+                //Mensaje de advertencia
+                Bukkit.getLogger().warning("Dirección de empuje no válida: " + directionStr + ". Usando dirección norte por defecto.");
+        }
+        player.setVelocity(direction);
     }
 }

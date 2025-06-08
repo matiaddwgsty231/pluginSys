@@ -37,12 +37,12 @@ public class CoinsPlaceholder extends PlaceholderExpansion {
         return plugin.getDescription().getVersion();
     }
 
-    @Override
-    public String onPlaceholderRequest(Player player, String identifier) {
-        if (identifier.equals("coins")) {
-            int coins = plugin.getCoinsManager().getCoins(player.getUniqueId());
-            return plugin.getCoinsManager().formatCoins(coins); // Devuelve el valor formateado
-        }
-        return null;
-    }
+    //@Override
+    //public String onPlaceholderRequest(Player player, String identifier) {
+      //  if (identifier.equals("coins")) {
+       //     int coins = plugin.getCoinsManager().getCoins(player.getUniqueId());
+        //    return plugin.getCoinsManager().formatCoins(coins); // Devuelve el valor formateado
+        //}
+        //return null;
+    //}
 }

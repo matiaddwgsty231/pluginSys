@@ -1,4 +1,4 @@
-package Sp.System.utils;
+package Sp.System.Manager;
 
 import Sp.System.SystemPlugin;
 import org.bukkit.Bukkit;

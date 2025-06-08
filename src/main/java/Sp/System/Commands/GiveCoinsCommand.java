@@ -46,10 +46,10 @@ public class GiveCoinsCommand implements CommandExecutor {
             return true;
         }
 
-        plugin.getCoinsManager().addCoins(target.getUniqueId(), amount);
-        String formattedAmount = plugin.getCoinsManager().formatCoins(amount);
-        sender.sendMessage("§aHas dado §e" + formattedAmount + " monedas §aal jugador §e" + target.getName() + "§a.");
-        target.sendMessage("§aHas recibido §e" + formattedAmount + " monedas§a.");
+        //plugin.getCoinsManager().addCoins(target.getUniqueId(), amount);
+        //String formattedAmount = plugin.getCoinsManager().formatCoins(amount);
+        //sender.sendMessage("§aHas dado §e" + formattedAmount + " monedas §aal jugador §e" + target.getName() + "§a.");
+        //target.sendMessage("§aHas recibido §e" + formattedAmount + " monedas§a.");
         return true;
     }
 }

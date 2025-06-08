@@ -1,5 +1,7 @@
 package Sp.System.Commands;
 
+import Sp.System.SystemPlugin;
+import Sp.System.Manager.ActionBarManager;
 import Sp.System.utils.MessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -21,6 +23,7 @@ import java.util.UUID;
 public class SpawnCommand implements CommandExecutor, Listener {
 
     private final Plugin plugin;
+    private final ActionBarManager actionBarManager;
     private final HashMap<UUID, Long> cooldowns = new HashMap<>();
     private final HashMap<UUID, Long> damageCooldowns = new HashMap<>();
     private final HashMap<UUID, Location> preparationLocations = new HashMap<>();
@@ -31,6 +34,7 @@ public class SpawnCommand implements CommandExecutor, Listener {
 
     public SpawnCommand(Plugin plugin) {
         this.plugin = plugin;
+        this.actionBarManager = new ActionBarManager((SystemPlugin) plugin);
         loadConfiguration();
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
@@ -72,14 +76,12 @@ public class SpawnCommand implements CommandExecutor, Listener {
                 sender.sendMessage(MessageUtils.getColoredMessage(prefix + "&c¡Solo los jugadores pueden usar este comando!"));
                 return true;
             }
-
             Player player = (Player) sender;
             if (isOnDamageCooldown(player)) {
                 long timeLeft = (damageCooldowns.get(player.getUniqueId()) - System.currentTimeMillis()) / 1000;
                 player.sendMessage(MessageUtils.getColoredMessage(prefix + spawnTimeTag.replace("%TimeTag%", String.valueOf(timeLeft))));
                 return true;
             }
-
             handlePlayerSpawn(player, player, false, false);
         } else if (args.length == 1) {
             if (args[0].equalsIgnoreCase("setspawn")) {
@@ -87,16 +89,22 @@ public class SpawnCommand implements CommandExecutor, Listener {
                     sender.sendMessage(MessageUtils.getColoredMessage(prefix + noPerms));
                     return true;
                 }
-
                 if (!(sender instanceof Player)) {
                     sender.sendMessage(MessageUtils.getColoredMessage(prefix + "&c¡Solo los jugadores pueden usar este comando!"));
                     return true;
                 }
-
                 Player player = (Player) sender;
                 spawnLocation = player.getLocation();
                 player.sendMessage(MessageUtils.getColoredMessage(prefix + spawnSetMessage));
                 plugin.getLogger().info("El spawn ha sido actualizado a: " + spawnLocation);
+                FileConfiguration config = plugin.getConfig();
+                config.set("spawn.world", spawnLocation.getWorld().getName());
+                config.set("spawn.x", spawnLocation.getX());
+                config.set("spawn.y", spawnLocation.getY());
+                config.set("spawn.z", spawnLocation.getZ());
+                config.set("spawn.yaw", spawnLocation.getYaw());
+                config.set("spawn.pitch", spawnLocation.getPitch());
+                plugin.saveConfig();
             } else {
                 if (!sender.hasPermission("System.Command.SpawnAdmin")) {
                     sender.sendMessage(MessageUtils.getColoredMessage(prefix + noPerms));
@@ -124,12 +132,19 @@ public class SpawnCommand implements CommandExecutor, Listener {
     private void handlePlayerSpawn(Player target, Player executor, boolean isByOther, boolean instant) {
         UUID targetUUID = target.getUniqueId();
         String prefix = plugin.getConfig().getString("prefix");
-        String cooldownMessage = plugin.getConfig().getString("Message_Spawn.CooldownSpawn");
-        String spawnTP = plugin.getConfig().getString("Message_Spawn.SpawnTP");
-        String spawnCancel = plugin.getConfig().getString("Message_Spawn.SpawnCancel");
-        String spawnTime = plugin.getConfig().getString("Message_Spawn.SpawnTime");
-        String spawnCountdownMessage = plugin.getConfig().getString("Message_Spawn.SpawnCountdown"); // Agregar aquí el mensaje para el countdown
+        String alreadyPreparingMessage = plugin.getConfig().getString("Message_Spawn.SpawnCountdown", "&aQuedan &e%Time% &as para teletransportarte al spawn.");
+        alreadyPreparingMessage = alreadyPreparingMessage.replace("%Time%", String.valueOf(preparationTime));
 
+        // Verificar si el jugador ya está en proceso de teletransporte
+        if (preparationLocations.containsKey(targetUUID)) {
+            target.sendMessage(MessageUtils.getColoredMessage(prefix + alreadyPreparingMessage));
+            return;
+        }
+
+        String cooldownMessage = plugin.getConfig().getString("Message_Spawn.CooldownSpawn", "&cDebes esperar %CooldownTime% segundos antes de volver a usar el spawn.");
+        String spawnTP = plugin.getConfig().getString("Message_Spawn.SpawnTP", "&aHas sido teletransportado al spawn.");
+        String spawnCancel = plugin.getConfig().getString("Message_Spawn.SpawnCancel", "&cEl teletransporte ha sido cancelado porque te has movido.");
+        String spawnTime = plugin.getConfig().getString("Message_Spawn.SpawnTime", "&aEl teletransporte se realizará en %Time% segundos.");
         cooldowns.entrySet().removeIf(entry -> entry.getValue() < System.currentTimeMillis());
 
         if (!isByOther && cooldowns.containsKey(targetUUID)) {
@@ -178,10 +193,7 @@ public class SpawnCommand implements CommandExecutor, Listener {
                         return;
                     }
 
-                    target.sendMessage(MessageUtils.getColoredMessage(
-                            prefix + spawnCountdownMessage.replace("%Time%", String.valueOf(timeLeft))
-                    ));
-
+                    actionBarManager.sendActionBarToPlayer(target, MessageUtils.getColoredMessage(spawnTime.replace("%Time%", String.valueOf(timeLeft))));
                     timeLeft--;
                 }
             }.runTaskTimer(plugin, 20L, 20L); // Ejecutar cada 20 ticks (1 segundo)
@@ -192,13 +204,12 @@ public class SpawnCommand implements CommandExecutor, Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
-        String prefix = plugin.getConfig().getString("prefix");
-        String spawnCancel = plugin.getConfig().getString("Message_Spawn.SpawnCancel");
+        String spawnCancel = plugin.getConfig().getString("Message_Spawn.SpawnCancel", "&cEl teletransporte ha sido cancelado porque te has movido.");
 
         if (preparationLocations.containsKey(playerUUID)) {
             Location initialLocation = preparationLocations.get(playerUUID);
             if (initialLocation != null && !event.getTo().toVector().equals(initialLocation.toVector())) {
-                player.sendMessage(MessageUtils.getColoredMessage(prefix + spawnCancel));
+                actionBarManager.sendActionBarToPlayer(player, MessageUtils.getColoredMessage(spawnCancel));
                 preparationLocations.remove(playerUUID);
             }
         }

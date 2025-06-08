@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.potion.PotionEffectType;
 import Sp.System.SystemPlugin;
@@ -12,57 +13,98 @@ import Sp.System.SystemPlugin;
 public class ZoneListener implements Listener {
 
     private final SystemPlugin plugin;
-    private boolean zoneEnabled = true;
 
     public ZoneListener(SystemPlugin plugin) {
         this.plugin = plugin;
     }
 
+    // Verifica si la zona está habilitada leyendo el config
+    public boolean isZoneEnabled() {
+        return plugin.getConfig().getBoolean("zone.enabled", true);
+    }
+
+    // Alterna el estado y guarda el config
     public void toggleZone() {
-        this.zoneEnabled = !this.zoneEnabled;
+        boolean current = isZoneEnabled();
+        boolean next = !current;
 
-        if (!zoneEnabled) {
+        plugin.getConfig().set("zone.enabled", next);
+        plugin.saveConfig();
 
+        // Si desactivamos la zona, removemos invisibilidad a todos dentro de la zona
+        if (!next) {
             for (Player player : Bukkit.getOnlinePlayers()) {
-                Location playerLocation = player.getLocation();
-                if (isInsideZone(playerLocation)) {
-                    if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
-                        player.removePotionEffect(PotionEffectType.INVISIBILITY);
-                    }
+                if (isInsideZone(player.getLocation())) {
+                    player.removePotionEffect(PotionEffectType.INVISIBILITY);
                 }
             }
         }
     }
 
-
-    public boolean isZoneEnabled() {
-        return this.zoneEnabled;
-    }
-
+    // Evento que controla invisibilidad al moverse
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (!zoneEnabled) return;
-
         Player player = event.getPlayer();
-        Location to = event.getTo();
-        Location from = event.getFrom();
 
-        if (to == null || (to.getBlockX() == from.getBlockX() && to.getBlockY() == from.getBlockY() && to.getBlockZ() == from.getBlockZ())) {
+        checkAndRemoveInvisibility(player);
+
+        if (!isZoneEnabled()) {
+            // Si la zona está desactivada, removemos invisibilidad inmediatamente si la tuviera
+            if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+                player.removePotionEffect(PotionEffectType.INVISIBILITY);
+            }
             return;
         }
 
+        Location to = event.getTo();
+        Location from = event.getFrom();
+
+        if (to == null || (to.getBlockX() == from.getBlockX() &&
+                to.getBlockY() == from.getBlockY() &&
+                to.getBlockZ() == from.getBlockZ())) {
+            return;
+        }
 
         if (isInsideZone(to)) {
             if (!player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
                 player.addPotionEffect(PotionEffectType.INVISIBILITY.createEffect(Integer.MAX_VALUE, 0));
             }
         } else {
-            if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
-                player.removePotionEffect(PotionEffectType.INVISIBILITY);
-            }
+            player.removePotionEffect(PotionEffectType.INVISIBILITY);
         }
     }
 
+    // Evento que controla invisibilidad al reconectarse
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+
+        if (!isZoneEnabled()) {
+            // Zona desactivada => remueve invisibilidad sin importar dónde esté
+            if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+                player.removePotionEffect(PotionEffectType.INVISIBILITY);
+            }
+            return;
+        }
+
+        // Zona activada => aplica invisibilidad si está dentro
+        if (isInsideZone(player.getLocation())) {
+            if (!player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+                player.addPotionEffect(PotionEffectType.INVISIBILITY.createEffect(Integer.MAX_VALUE, 0));
+            }
+        } else {
+            player.removePotionEffect(PotionEffectType.INVISIBILITY);
+        }
+    }
+
+    public void checkAndRemoveInvisibility(Player player) {
+        if (!isZoneEnabled() && player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+            player.removePotionEffect(PotionEffectType.INVISIBILITY);
+        }
+    }
+
+
+    // Verifica si la ubicación está dentro de la zona configurada
     private boolean isInsideZone(Location loc) {
         String worldName = plugin.getConfig().getString("zone.world");
         double x1 = plugin.getConfig().getDouble("zone.x1");
@@ -87,6 +129,8 @@ public class ZoneListener implements Listener {
         double minZ = Math.min(z1, z2);
         double maxZ = Math.max(z1, z2);
 
-        return x >= minX && x <= maxX && y >= minY && y <= maxY && z >= minZ && z <= maxZ;
+        return x >= minX && x <= maxX &&
+                y >= minY && y <= maxY &&
+                z >= minZ && z <= maxZ;
     }
 }

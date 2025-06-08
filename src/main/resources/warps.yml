@@ -1,64 +1,103 @@
-TITLE: Warps
-SIZE: 54
+MENU:
+  menu1:
+    TITLE: Warps
+    SIZE: 54
+  menu2:
+    TITLE: Minas
+    SIZE: 54
 
 WARP:
   TELEPORT_DELAY: 10
   COOLDOWN: 5
-  COMBAT: '&7[&4Combat&7] &fYou can''t use warps while you are in Combat. Time left &f{combat}'
+  COMBAT: '&7[&4Combat&7] &fYou can''t use warps while you are in Combat. Time left
+    &f{combat}'
   TELEPORTING-ALREADY: '&cYou are already teleporting to a warp location.'
   CANCEL: '&cYou''ve moved! Teleportation to warp has been cancelled.'
   TELEPORTED: '&aSuccessfully teleported to &a&l{warp}&a.'
   TELEPORTING: '&aTeleporting in {time} seconds...'
-  NoPermCrate: '&cYou don''t have permission to do that.'
-  NoPerm: '&cYou don''t have permission to use this warp!'
+  NOPERMCREATE: '&cYou don''t have permission to do that.'
+  NOPERM: '&cYou don''t have permission to use this warp!'
+  ACTIONBAR: '&aTeleporting in {time} seconds...'
+
+LINK:
+  menu1: #nombre del menu
+    MATERIAL: ENDER_PEARL
+    SLOT: 21
+    MENU: menu1 #en que menu esta
+    NAME: '&7&lSpawn'
+    LORE:
+      - '&7te lleva al menu1''
+     - '&7'
+      - '&e➦ Clic ir al menu2'
+    GO: menu2
+  menu2: #nombre del menu
+    MATERIAL: ENDER_PEARL
+    SLOT: 21
+    MENU: menu1 #en que menu esta
+    NAME: '&7&lSpawn'
+    LORE:
+      - '&7te lleva al menu1'
+      - '&7'
+      - '&e➦ Clic ir al menu1'
+    GO: menu1
 
 ITEMS:
   Spawn:
     MATERIAL: ENDER_PEARL
     SLOT: 21
+    MENU: menu1
     NAME: '&7&lSpawn'
     LORE:
       - '&7'
       - '&f| &7Esta es una &LZona SEGURA &7donde'
       - '&f| &7no te pueden matar ni hacer daño.'
-      - ''
-      - '&e➦ Click to teleport'
+      - '&7'
+      - '&e➦ Clic para teletrasportar'
     PERMISSION-REQUIRED: false
     PERMISSION: warp.spawn
     command: true
     COMMANDS:
-      - '{player} command'
-      - '{console} command'
-      - '{player} command'
-      -
-  CustomHeadWarp:
-    MATERIAL: HD-12345
-    SLOT: 10
-    NAME: "&6Cabeza personalizada"
-    LORE:
-      - "&7Una cabeza especial"
-    PERMISSION-REQUIRED: false
-    PERMISSION: warp.customhead
-    warp: true
-    WORLD: world
-    X: 0
-    Y: 64
-    Z: 0
-    YAW: 0
-    PITCH: 0
+      - '{player} spawn'
 
-  StoneWarp:
-    MATERIAL: STONE
-    SLOT: 11
-    NAME: "&7Warp de piedra"
+  Trades:
+    MATERIAL: HD-41281
+    SLOT: 13
+    MENU: menu2
+    NAME: §3&lTrades
     LORE:
-      - "&7Un warp con material normal"
+      - '&7'
+      - '&7En este logar puedes optener'
+      - '&7items que te pueden ayudar en el juego'
+      - '&7del servidor.'
+      - '&7'
+      - '&e➦ Clic para teletrasportar'
     PERMISSION-REQUIRED: false
-    PERMISSION: warp.stone
+    PERMISSION: warp.trade
     warp: true
-    WORLD: world
-    X: 10
-    Y: 64
-    Z: 10
-    YAW: 0
+    command: false
+    WORLD: Lobby
+    X: -24.5
+    Y: 236.0
+    Z: 37.5
+    YAW: 90
     PITCH: 0
+  Cajas:
+    MATERIAL: ENDER_PEARL
+    SLOT: 17
+    MENU: menu2
+    NAME: '&7&lCajas'
+    LORE:
+      - '&7'
+      - '&e➦ Click to teleport'
+    PERMISSION-REQUIRED: true
+    PERMISSION: warp.cajas
+    warp: true
+    command: false
+    WORLD: Lobby
+    X: 10.500259343693475
+    Y: 236.0
+    Z: 37.49786423956828
+    YAW: -89.19447
+    PITCH: 0.051673234
+
+

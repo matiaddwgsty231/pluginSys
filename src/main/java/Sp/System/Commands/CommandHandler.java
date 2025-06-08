@@ -7,8 +7,6 @@ import org.bukkit.*;
 import org.bukkit.command.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.*;
-import org.bukkit.event.entity.*;
-import org.bukkit.plugin.*;
 import org.bukkit.scheduler.BukkitRunnable;
 import Sp.System.SystemPlugin;
 import Sp.System.utils.MessageUtils;
@@ -17,14 +15,9 @@ import Sp.System.utils.SuccessfulTpaEvent;
 public class CommandHandler implements CommandExecutor, Listener {
     private final SystemPlugin plugin;
     private static final long TPA_EXPIRE_TIME = 6000L; // 5 minutos (6000 ticks)
-    private static final int PROTECTION_HITS = 4; // Límite de golpes
-    private static final long PROTECTION_TIME = 200L; // 10 segundos (200 ticks)
 
     // Mapa de solicitudes TPA
     private static final Map<UUID, UUID> tpaRequests = new HashMap<>();
-    // Mapa de protección y contador de golpes
-    private static final Map<UUID, Long> protectedPlayers = new HashMap<>();
-    private static final Map<UUID, Integer> hitCounters = new HashMap<>();
 
     public CommandHandler(SystemPlugin plugin) {
         this.plugin = plugin;
@@ -120,36 +113,15 @@ public class CommandHandler implements CommandExecutor, Listener {
             return true;
         }
 
-        // Aplicar protección anti-TPAkill
-        applyAntiTpaKill(requester);
-
         // Teleportar
         Location safeLoc = getSafeLocation(acceptor.getLocation());
         requester.teleport(safeLoc);
 
         // Mensajes
         acceptor.sendMessage(ChatColor.GREEN + "Has aceptado la solicitud de " + requester.getName());
-        requester.sendMessage(ChatColor.GREEN + acceptor.getName() + " ha aceptado tu solicitud.\n" +
-                ChatColor.YELLOW + "Tienes protección por 10 segundos o hasta dar " + PROTECTION_HITS + " golpes.");
 
         tpaRequests.remove(requesterId);
         return true;
-    }
-
-    private void applyAntiTpaKill(Player player) {
-        protectedPlayers.put(player.getUniqueId(), System.currentTimeMillis());
-        hitCounters.put(player.getUniqueId(), 0);
-
-        // Temporizador para remover protección
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (protectedPlayers.remove(player.getUniqueId()) != null) {
-                    player.sendMessage(ChatColor.GOLD + "Tu protección anti-TPAkill ha expirado.");
-                    hitCounters.remove(player.getUniqueId());
-                }
-            }
-        }.runTaskLater(plugin, PROTECTION_TIME);
     }
 
     private Location getSafeLocation(Location original) {
@@ -158,53 +130,9 @@ public class CommandHandler implements CommandExecutor, Listener {
         return original; // Simplificado para el ejemplo
     }
 
-    @EventHandler
-    public void onPlayerAttack(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player)) return;
-
-        Player attacker = (Player) event.getDamager();
-        UUID attackerId = attacker.getUniqueId();
-
-        // Verificar si el atacante tiene protección
-        if (protectedPlayers.containsKey(attackerId)) {
-            // Cancelar el daño
-            event.setCancelled(true);
-
-            // Incrementar contador de golpes
-            int hits = hitCounters.getOrDefault(attackerId, 0) + 1;
-            hitCounters.put(attackerId, hits);
-
-            // Mensaje al jugador
-            attacker.sendMessage(ChatColor.YELLOW + String.format(
-                    "Golpe %d/%d - Protección activa", hits, PROTECTION_HITS));
-
-            // Si alcanza el límite, remover protección
-            if (hits >= PROTECTION_HITS) {
-                protectedPlayers.remove(attackerId);
-                hitCounters.remove(attackerId);
-                attacker.sendMessage(ChatColor.RED + "¡Has perdido la protección por atacar demasiado!");
-            }
-        }
-    }
-
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof Player)) return;
-
-        Player player = (Player) event.getEntity();
-
-        // Si el jugador está protegido, cancelar daño recibido
-        if (protectedPlayers.containsKey(player.getUniqueId())) {
-            event.setCancelled(true);
-        }
-    }
-
     private boolean handleTpaDeny(Player denier) {
         // Implementación similar a versiones anteriores
         return true;
     }
 
-    public static boolean hasTpaProtection(Player player) {
-        return protectedPlayers.containsKey(player.getUniqueId());
-    }
 }

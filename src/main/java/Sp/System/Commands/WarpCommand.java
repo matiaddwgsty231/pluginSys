@@ -1,8 +1,10 @@
 package Sp.System.Commands;
 
 import Sp.System.SystemPlugin;
+import Sp.System.PlayerListener.*;
 import Sp.System.utils.MessageUtils;
 import me.arcaniax.hdb.api.HeadDatabaseAPI;
+import Sp.System.Manager.ActionBarManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -16,6 +18,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,52 +37,53 @@ public class WarpCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage("§cEste comando solo puede ser usado por jugadores.");
+            sender.sendMessage("§cSolo los jugadores pueden usar este comando.");
             return true;
         }
 
         Player player = (Player) sender;
         FileConfiguration warpsConfig = plugin.getCustomConfig("warps.yml");
 
+        // Si no se pasa argumento, abrir el menú
         if (args.length == 0) {
-            openWarpInventory(player, warpsConfig);
+            openWarpInventory(player, warpsConfig, "menu1");
             return true;
         }
 
-        String warpName = args[0].toLowerCase();
+        // Si se pasa el nombre del warp
+        String warpName = args[0];
+
+        if (!warpsConfig.contains("ITEMS." + warpName)) {
+            player.sendMessage("§cEl warp especificado no existe.");
+            return true;
+        }
 
         if (isInCooldown(player)) {
-            long timeLeft = getCooldownTimeLeft(player);
-            player.sendMessage(MessageUtils.getColoredMessage("&cDebes esperar " + timeLeft + " segundos antes de usar otro warp."));
+            player.sendMessage(MessageUtils.getColoredMessage("&cEspera " + getCooldownTimeLeft(player) + " segundos para usar otro warp."));
             return true;
         }
 
-        String matchedWarp = warpsConfig.getConfigurationSection("ITEMS").getKeys(false).stream()
-                .filter(key -> key.equalsIgnoreCase(warpName))
-                .findFirst()
-                .orElse(null);
+        String path = "ITEMS." + warpName;
+        boolean permissionRequired = warpsConfig.getBoolean(path + ".PERMISSION-REQUIRED", false);
+        String permission = warpsConfig.getString(path + ".PERMISSION", "");
 
-        if (matchedWarp == null) {
-            player.sendMessage(MessageUtils.getColoredMessage("&cEl warp especificado no existe."));
+        if (permissionRequired && !player.hasPermission(permission)) {
+            player.sendMessage(MessageUtils.getColoredMessage(warpsConfig.getString("WARP.NOPERM", "&cNo tienes permiso para usar este warp.")));
             return true;
         }
 
-        boolean isWarp = warpsConfig.getBoolean("ITEMS." + matchedWarp + ".warp", false);
-        boolean isCommand = warpsConfig.getBoolean("ITEMS." + matchedWarp + ".command", false);
-
-        if (isCommand) {
-            executeCommands(player, warpsConfig, matchedWarp);
-        } else if (isWarp) {
-            teleportPlayer(player, warpsConfig, matchedWarp);
+        boolean isCommandWarp = warpsConfig.getBoolean(path + ".command", false);
+        if (isCommandWarp) {
+            executeCommands(player, warpsConfig, warpName);
         } else {
-            player.sendMessage(MessageUtils.getColoredMessage("&cEl warp especificado no está configurado correctamente."));
+            teleportPlayer(player, warpsConfig, warpName, plugin.getTeleportCancelListener(), new ActionBarManager(plugin));
         }
 
         applyCooldown(player);
         return true;
     }
 
-    private void openWarpInventory(Player player, FileConfiguration warpsConfig) {
+    public void openWarpInventory(Player player, FileConfiguration warpsConfig, String menu) {
         String inventoryTitle = MessageUtils.getColoredMessage(warpsConfig.getString("TITLE", "Warps"));
         int inventorySize = warpsConfig.getInt("SIZE", 54);
 
@@ -88,35 +92,58 @@ public class WarpCommand implements CommandExecutor {
         boolean headDatabaseAvailable = Bukkit.getPluginManager().getPlugin("HeadDatabase") != null;
         HeadDatabaseAPI headDatabaseAPI = headDatabaseAvailable ? new HeadDatabaseAPI() : null;
 
-        for (String warpName : warpsConfig.getConfigurationSection("ITEMS").getKeys(false)) {
-            String materialName = warpsConfig.getString("ITEMS." + warpName + ".MATERIAL", "ENDER_PEARL");
-            ItemStack item;
+        // Mostrar LINKS (navegación entre menús)
+        if (warpsConfig.contains("LINK")) {
+            for (String key : warpsConfig.getConfigurationSection("LINK").getKeys(false)) {
+                String menuKey = "LINK." + key;
+                if (!menu.equalsIgnoreCase(warpsConfig.getString(menuKey + ".MENU"))) continue;
 
-            if (materialName.startsWith("HD-") && headDatabaseAvailable) {
-                String headID = materialName.substring(3);
-                item = headDatabaseAPI.getItemHead(headID);
-            } else if (materialName.startsWith("PLAYER-")) {
-                String playerName = materialName.substring(7);
-                item = getPlayerHead(playerName);
-            } else {
-                Material material = Material.matchMaterial(materialName);
-                if (material == null) {
-                    continue;
+                String materialName = warpsConfig.getString(menuKey + ".MATERIAL", "ENDER_PEARL");
+                ItemStack item = getItemFromMaterial(materialName, headDatabaseAPI);
+
+                ItemMeta meta = item.getItemMeta();
+                if (meta != null) {
+                    meta.setDisplayName(MessageUtils.getColoredMessage(warpsConfig.getString(menuKey + ".NAME", key)));
+                    meta.setLore(MessageUtils.getColoredMessages(warpsConfig.getStringList(menuKey + ".LORE")));
+                    if (meta instanceof PersistentDataHolder) {
+                        ((PersistentDataHolder) meta).getPersistentDataContainer().set(SystemPlugin.getWarpKey(), PersistentDataType.STRING, "menu:" + warpsConfig.getString(menuKey + ".GO"));
+                    }
+                    item.setItemMeta(meta);
                 }
-                item = new ItemStack(material);
+
+                int slot = warpsConfig.getInt(menuKey + ".SLOT", -1);
+                if (slot >= 0 && slot < inventorySize) {
+                    warpInventory.setItem(slot, item);
+                } else {
+                    warpInventory.addItem(item);
+                }
             }
+        }
+
+        // Mostrar warps del menú actual
+        if (!warpsConfig.contains("ITEMS")) {
+            player.sendMessage("§cNo hay warps configurados.");
+            return;
+        }
+
+        for (String warpName : warpsConfig.getConfigurationSection("ITEMS").getKeys(false)) {
+            String path = "ITEMS." + warpName;
+            if (!menu.equalsIgnoreCase(warpsConfig.getString(path + ".MENU", "menu1"))) continue;
+
+            String materialName = warpsConfig.getString(path + ".MATERIAL", "ENDER_PEARL");
+            ItemStack item = getItemFromMaterial(materialName, headDatabaseAPI);
 
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName(MessageUtils.getColoredMessage(warpsConfig.getString("ITEMS." + warpName + ".NAME", warpName)));
-                meta.setLore(MessageUtils.getColoredMessages(warpsConfig.getStringList("ITEMS." + warpName + ".LORE")));
+                meta.setDisplayName(MessageUtils.getColoredMessage(warpsConfig.getString(path + ".NAME", warpName)));
+                meta.setLore(MessageUtils.getColoredMessages(warpsConfig.getStringList(path + ".LORE")));
                 if (meta instanceof PersistentDataHolder) {
                     ((PersistentDataHolder) meta).getPersistentDataContainer().set(SystemPlugin.getWarpKey(), PersistentDataType.STRING, warpName);
                 }
                 item.setItemMeta(meta);
             }
 
-            int slot = warpsConfig.getInt("ITEMS." + warpName + ".SLOT", -1);
+            int slot = warpsConfig.getInt(path + ".SLOT", -1);
             if (slot >= 0 && slot < inventorySize) {
                 warpInventory.setItem(slot, item);
             } else {
@@ -127,61 +154,107 @@ public class WarpCommand implements CommandExecutor {
         player.openInventory(warpInventory);
     }
 
+    private ItemStack getItemFromMaterial(String materialName, HeadDatabaseAPI headDatabaseAPI) {
+        if (materialName.startsWith("HD-") && headDatabaseAPI != null) {
+            return headDatabaseAPI.getItemHead(materialName.substring(3));
+        } else if (materialName.startsWith("PLAYER-")) {
+            return getPlayerHead(materialName.substring(7));
+        } else {
+            Material mat = Material.matchMaterial(materialName);
+            return mat != null ? new ItemStack(mat) : new ItemStack(Material.BARRIER);
+        }
+    }
+
     private ItemStack getPlayerHead(String playerName) {
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         ItemMeta meta = head.getItemMeta();
-
-        if (meta != null) {
-            meta.setDisplayName(playerName);
-            meta.setLore(Collections.singletonList("Cabeza de " + playerName));
+        if (meta instanceof org.bukkit.inventory.meta.SkullMeta) {
             ((org.bukkit.inventory.meta.SkullMeta) meta).setOwner(playerName);
+        }
+        if (meta != null) {
+            meta.setDisplayName("Cabeza de " + playerName);
+            meta.setLore(Collections.singletonList("Cabeza de " + playerName));
             head.setItemMeta(meta);
         }
-
         return head;
     }
 
-    private void teleportPlayer(Player player, FileConfiguration warpsConfig, String warpName) {
-        String worldName = warpsConfig.getString("ITEMS." + warpName + ".WORLD");
-        double x = warpsConfig.getDouble("ITEMS." + warpName + ".X");
-        double y = warpsConfig.getDouble("ITEMS." + warpName + ".Y");
-        double z = warpsConfig.getDouble("ITEMS." + warpName + ".Z");
-        float yaw = (float) warpsConfig.getDouble("ITEMS." + warpName + ".YAW");
-        float pitch = (float) warpsConfig.getDouble("ITEMS." + warpName + ".PITCH");
+    // Para teletransportar
+    public void teleportPlayer(Player player, FileConfiguration warpsConfig, String warpName, TeleportCancelListener cancelListener, ActionBarManager actionBarManager) {
+        String path = "ITEMS." + warpName;
+        String worldName = warpsConfig.getString(path + ".WORLD");
+        double x = warpsConfig.getDouble(path + ".X");
+        double y = warpsConfig.getDouble(path + ".Y");
+        double z = warpsConfig.getDouble(path + ".Z");
+        float yaw = (float) warpsConfig.getDouble(path + ".YAW");
+        float pitch = (float) warpsConfig.getDouble(path + ".PITCH");
 
         if (worldName == null || Bukkit.getWorld(worldName) == null) {
-            player.sendMessage(MessageUtils.getColoredMessage("&cEl mundo especificado no existe o no está cargado."));
             return;
         }
 
-        Location location = new Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch);
-        player.teleport(location);
-        player.sendMessage(MessageUtils.getColoredMessage("&a¡Has sido teletransportado al warp " + warpName + "!"));
+        int countdownTime = plugin.getConfig().getInt("WARP.TELEPORT_DELAY", 10);// Tiempo de espera en segundos
+        player.sendMessage(MessageUtils.getColoredMessage(warpsConfig.getString("WARP.TELEPORTING", "&eSerás teletransportado al warp {warp} en {time} segundos...")
+                .replace("{warp}", warpName)
+                .replace("{time}", String.valueOf(countdownTime))));
+        cancelListener.addTeleportingPlayer(player.getUniqueId());
+
+        new BukkitRunnable() {
+            int timeLeft = countdownTime;
+
+            @Override
+            public void run() {
+                if (!cancelListener.teleportingPlayers.contains(player.getUniqueId())) {
+                    cancel();
+                    return;
+                }
+
+                if (timeLeft <= 0) {
+                    Location location = new Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch);
+                    player.teleport(location);
+                    player.sendMessage(MessageUtils.getColoredMessage(warpsConfig.getString("WARP.TELEPORTED", "&a¡Has sido teletransportado al warp {warp}!")
+                            .replace("{warp}", warpName)));
+                    cancelListener.removeTeleportingPlayer(player.getUniqueId());
+                    cancel();
+                    return;
+                }
+
+                // Mostrar mensaje en la barra de acción usando ActionBarManager
+                String actionBarMessage = warpsConfig.getString("WARP.ACTIONBAR", "&eTeletransporte en &c{time} &esegundos...");
+                actionBarMessage = actionBarMessage.replace("{time}", String.valueOf(timeLeft));
+                actionBarManager.sendActionBarToPlayer(player, MessageUtils.getColoredMessage(actionBarMessage));
+                timeLeft--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L); // Ejecutar cada segundo
     }
 
-    private void executeCommands(Player player, FileConfiguration warpsConfig, String warpName) {
+    public void executeCommands(Player player, FileConfiguration warpsConfig, String warpName) {
         String path = "ITEMS." + warpName;
         for (String cmd : warpsConfig.getStringList(path + ".COMMANDS")) {
+            cmd = cmd.replace("%player%", player.getName());
+
             if (cmd.startsWith("{player}")) {
-                player.performCommand(cmd.replace("{player} ", ""));
+                String commandToRun = cmd.replace("{player} ", "");
+                player.chat("/" + commandToRun); // Ejecuta el comando como jugador
             } else if (cmd.startsWith("{console}")) {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("{console} ", ""));
+                String commandToRun = cmd.replace("{console} ", "");
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), commandToRun); // Ejecuta el comando como consola
             }
         }
-        player.sendMessage(MessageUtils.getColoredMessage("&a¡Comandos ejecutados para el warp " + warpName + "!"));
     }
 
-    private boolean isInCooldown(Player player) {
+
+    public boolean isInCooldown(Player player) {
         return warpCooldowns.containsKey(player.getUniqueId()) &&
                 (System.currentTimeMillis() - warpCooldowns.get(player.getUniqueId())) < plugin.getConfig().getInt("WARP.COOLDOWN", 5) * 1000;
     }
 
-    private long getCooldownTimeLeft(Player player) {
+    public long getCooldownTimeLeft(Player player) {
         long cooldown = plugin.getConfig().getInt("WARP.COOLDOWN", 5) * 1000;
         return (cooldown - (System.currentTimeMillis() - warpCooldowns.get(player.getUniqueId()))) / 1000;
     }
 
-    private void applyCooldown(Player player) {
+    public void applyCooldown(Player player) {
         warpCooldowns.put(player.getUniqueId(), System.currentTimeMillis());
     }
 }

@@ -22,10 +22,10 @@ public class CoinsCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
-        int coins = plugin.getCoinsManager().getCoins(player.getUniqueId());
-        String formattedCoins = plugin.getCoinsManager().formatCoins(coins); // Formatear las monedas
+        //int coins = plugin.getCoinsManager().getCoins(player.getUniqueId());
+       // String formattedCoins = plugin.getCoinsManager().formatCoins(coins); // Formatear las monedas
 
-        player.sendMessage("§aTienes §e" + formattedCoins + " monedas§a."); // Mostrar solo el valor formateado
+     //   player.sendMessage("§aTienes §e" + formattedCoins + " monedas§a."); // Mostrar solo el valor formateado
         return true;
     }
 }

@@ -1,33 +1,27 @@
-prefix: "&f[&a&lMinelucky&f] "
-
+prefix: "&f[&a&lMinelucky&f] " # Prefijo del mensaje
 
 push_strength:
-  horizontal: 10.0
-  vertical: 0.05
+  horizontal: 10.0  # Fuerza horizontal (X/Z)
+  vertical: 0.05    # Fuerza vertical (Y)
 
+# Dirección del empuje (NORTH, SOUTH, EAST, WEST)
+push_direction: "NORTH"
 
+# Configuración del spawn
 spawn:
-  world: "world"
-  x: -7
-  y: 138
-  z: 82
-  yaw: -180
-  pitch: 0
-times:
-  preparationTime: 5
-  damageCooldownTime: 30
-  cooldownTime: 10
+  world: Lobby # Nombre del mundo donde se encuentra el spawn
+  x: -6.5 # Coordenada X del spawn
+  y: 238 # Coordenada Y del spawn
+  z: 82.5 # Coordenada Z del spawn
+  yaw: -180 # Rotación del spawn en el eje Y (Yaw)
+  pitch: 0 # Rotación del spawn en el eje X (Pitch)
 
-zone:
-  enabled: true
-  world: "world"
-  x1: 52.500          # Esquina 1 (X, Y, Z)
-  y1: 180
-  z1: -0.500
-  x2: -73.500      # Esquina 2 (X, Y, Z)
-  y2: 126
-  z2: 157.500
+times: # Tiempos de espera para diferentes acciones
+  preparationTime: 5 # Tiempo de preparación antes de iniciar el juego
+  damageCooldownTime: 30 # Tiempo de espera después de recibir daño
+  cooldownTime: 10 # Tiempo de espera para usar el comando de spawn nuevamente
 
+# Configuración de mensajes (spawn)
 Message_Spawn:
   SpawnSet: "&a¡Ubicación del Spawn establecida correctamente!"
   SpawnNoOnUser: "&cEl jugador no esta conectado"
@@ -39,17 +33,23 @@ Message_Spawn:
   No_Perms: "&cNo tienes permiso para hacer eso."
   SpawnCountdown: "&aQuedan &e%Time% &as para teletransportarte al spawn."
 
-Messages_Invsee:
-  No_Perms: "&c¡No tienes permiso para usar este comando!"
-  Incorrect_Usage: "&eUso: /invsee &a<jugador>"
-  Player_Offline: "&cEl jugador especificado no está en línea."
-  Self_Inventory_Error: "&c¡No puedes revisar tu propio inventario!"
-  Inventory_Title: "&6Inventario de &e%player%"
+# Configuración de la zona de spawn (ESTA ZONA DA INVIABILIDAD A LOS JUGADORES)
+zone:
+  enabled: false # Habilita(true) o deshabilita(false) la zona de spawn
+  world: Lobby # Nombre del mundo donde se encuentra la zona de spawn
+  x1: 72 # Coordenada X1 de la zona de spawn
+  y1: 276 # Coordenada Y1 de la zona de spawn
+  z1: 0 # Coordenada Z1 de la zona de spawn
+  x2: -75 # Coordenada X2 de la zona de spawn
+  y2: 226 # Coordenada Y2 de la zona de spawn
+  z2: 162 # Coordenada Z2 de la zona de spawn
 
+# Configuración de mensajes de EnderChest
 Message_EnderChest:
   Open_EnderChest: "&aSe ha abierto tu EnderChest."
   No_Perms: "&cNo tienes permiso para hacer eso."
 
+# Configuración de mensajes de Fly
 Message_Fly:
   No_Perms: "&cNo tienes permiso para hacer eso."
   Error_Player_No_On: "&cEl jugador %OtrePlayer% no está conectado."
@@ -59,35 +59,36 @@ Message_Fly:
   Fly_On_Otre: "&aHas activado el vuelo de  %OtrePlayer% ."
   Fly_Off_Otre: "&aHas desactivado el vuelo de %OtrePlayer% ."
 
+# Configuración de mensajes de Tienda
 Message_Store:
   Tienda:
-    - "&aTienda.enlace.com"
+    - '&aTienda.Minelucky.org'
+
+#Configuración de mensajes de plugin
 messages_System:
   No_Perms: "&cNo tienes permiso para hacer eso."
   reloadMessage: "&aConfiguración recargada correctamente."
 
+# Configuración de mensajes de bienvenida
 Config:
   welcome_message:
-    enabled: true
-    message:
-      - "&e&l                          "
-      - "&eBienvenido &7%player%       "
-      - "&fYa puedes jugar en tu server"
-      - "&e&l                          "
+    enabled: true # Habilita(true) o deshabilita(false) el mensaje de bienvenida
+    message:  # Mensaje de bienvenida al jugador
+      - '&7&l&n-------------------------------------'
+      - '&e&l                                       '
+      - '&eBienvenido &7%player% &ea &2&lMinelucky  '
+      - '&e&l                                       '
+      - '&9&l&nDiscord&7: &fDiscord.gg/Minelucky    '
+      - '&a&l&nTienda&7: &fTienda.Minelucky.org     '
+      - '&e&l                                       '
+      - '&7&l&n-------------------------------------'
 
-
-scoreboard:
-  enabled: true
-  lines:
-    - "&6Monedas: &a%system_coins%"
-
-
-recolector:
-  material: CHEST
-  nombre: "&6Recolector de Chunk"
-  lore:
-    - "&7Recoge todos los ítems del chunk."
-    - "&7Haz clic derecho para abrir el menú."
-  autosell:
-    habilitado: true
-    precio_por_item: 10.0
+# Lista de comandos visibles (todos los demás estarán ocultos)
+allowed-commands:
+  - help
+  - spawn
+  - home
+  - msg
+  - tpa
+  - warp
+  - rules
