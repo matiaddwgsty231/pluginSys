@@ -3,6 +3,7 @@ package Sp.System.PlayerListener;
 import Sp.System.SystemPlugin;
 import Sp.System.utils.MessageUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -65,41 +66,48 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPressurePlateActivate(PlayerInteractEvent event) {
-        if (event.getClickedBlock() == null
-                || event.getClickedBlock().getType() != Material.STONE_PRESSURE_PLATE) {
+        // Verificar que el jugador haya interactuado con un bloque
+        if (event.getClickedBlock() == null) {
+            return;
+        }
+
+        // Verificar que el bloque sea una placa de presión ligera
+        if (event.getClickedBlock().getType() != Material.LIGHT_WEIGHTED_PRESSURE_PLATE) {
             return;
         }
 
         Player player = event.getPlayer();
 
-        //Obtener valores de configuración
-        double horizontal = plugin.getConfig().getDouble("push_strength.horizontal", 10.0);
-        double vertical = plugin.getConfig().getDouble("push_strength.vertical", 0.05);
-        String directionStr = plugin.getConfig().getString("push_direction", "NORTH").toUpperCase();
+        // Obtener valores de configuración con valores por defecto
+        double horizontal = plugin.getConfig().getDouble("push_strength.horizontal", 1.5);
+        double vertical = plugin.getConfig().getDouble("push_strength.vertical", 0.5);
+        String direction = plugin.getConfig().getString("push_direction", "NORTH").toUpperCase();
 
-        //Crear vector de dirección
-        Vector direction = new Vector(0, vertical, 0);
 
-        //Asignar dirección horizontal según la configuración
-        switch (directionStr) {
+        // Crear el vector de empuje
+        Vector push = new Vector(0, vertical, 0);
+
+        // Asignar dirección horizontal
+        switch(direction) {
             case "NORTH":
-                 direction.setZ(-horizontal);
-                 break;
+                push.setZ(-horizontal);
+                break;
             case "SOUTH":
-                 direction.setZ(horizontal);
-                 break;
+                push.setZ(horizontal);
+                break;
             case "EAST":
-                 direction.setX(horizontal);
-                 break;
+                push.setX(horizontal);
+                break;
             case "WEST":
-                 direction.setX(-horizontal);
-                 break;
+                push.setX(-horizontal);
+                break;
             default:
-                // Si la dirección no es válida, usar norte por defecto
-                direction.setZ(-horizontal);
-                //Mensaje de advertencia
-                Bukkit.getLogger().warning("Dirección de empuje no válida: " + directionStr + ". Usando dirección norte por defecto.");
+                push.setZ(-horizontal);
+                plugin.getLogger().warning("Dirección no válida, usando NORTH por defecto");
         }
-        player.setVelocity(direction);
+
+        // Aplicar el empuje
+        player.setVelocity(push);
     }
 }
+

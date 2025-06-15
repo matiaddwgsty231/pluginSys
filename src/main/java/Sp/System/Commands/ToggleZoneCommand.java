@@ -20,10 +20,6 @@ public class ToggleZoneCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("¡Este comando solo puede ser usado por jugadores!");
-            return true;
-        }
         if (!sender.hasPermission("System.Commands.Togglezone")) {
             sender.sendMessage(MessageUtils.getColoredMessage("&cNo tienes permiso para usar este comando."));
             return true;

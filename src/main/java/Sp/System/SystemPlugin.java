@@ -40,6 +40,8 @@ public class SystemPlugin extends JavaPlugin {
 
     private TeleportCancelListener teleportCancelListener;
 
+    private MenuManager menuManager;
+
     //private RecolectorManager recolectorManager;
 
     //private CoinsManager coinsManager;
@@ -50,6 +52,10 @@ public class SystemPlugin extends JavaPlugin {
         saveDefaultConfig();
         setupConfigFiles();
         loadVisibleCommands();
+
+        this.menuManager = new MenuManager(this);
+        getCommand("orden").setExecutor(new CommandMenu(menuManager));
+        getServer().getPluginManager().registerEvents(new MenuListener(menuManager), this);
 
         //recolectorManager = new RecolectorManager(getConfig());
         ElytraRestrictionListener listener = new ElytraRestrictionListener();
@@ -104,11 +110,12 @@ public class SystemPlugin extends JavaPlugin {
         getCommand("warpcreate").setExecutor(new WarpCreateCommand(this));
         getCommand("reloadwarp").setExecutor(new ReloadWarpCommand(this));
         getCommand("warp").setExecutor(warpCommand);
+        getCommand("warp").setTabCompleter(new WarpTabCompleter(this));
         getCommand("pmsg").setExecutor(new PmsgCommand());
         getCommand("actionbar").setExecutor(new ActionBarCommand(actionBarManager));
         getCommand("hcreload").setExecutor(new CommandManager(this));
+        getCommand("Fly").setExecutor(new FlyCommand(this));
         //getCommand("givecoins").setExecutor(new GiveCoinsCommand(this));
-        //getCommand("Fly").setExecutor(new FlyCommand(this));
         //getCommand("coins").setExecutor(new CoinsCommand(this));
         //getCommand("giverecolector").setExecutor(new GiveRecolectorCommand(recolectorManager.getRecolector()));
     }
@@ -208,4 +215,5 @@ public class SystemPlugin extends JavaPlugin {
     public TeleportCancelListener getTeleportCancelListener() {
         return teleportCancelListener;
     }
+
 }

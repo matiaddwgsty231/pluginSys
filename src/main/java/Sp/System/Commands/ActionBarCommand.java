@@ -33,7 +33,6 @@ public class ActionBarCommand implements CommandExecutor {
 
         if (target.equalsIgnoreCase("all")) {
             actionBarManager.sendActionBarToAll(MessageUtils.getColoredMessage(message));
-            sender.sendMessage(MessageUtils.getColoredMessage("&aMensaje enviado a todos los jugadores."));
         } else {
             Player player = Bukkit.getPlayer(target);
             if (player == null || !player.isOnline()) {
@@ -41,7 +40,6 @@ public class ActionBarCommand implements CommandExecutor {
                 return true;
             }
             actionBarManager.sendActionBarToPlayer(player, MessageUtils.getColoredMessage(message));
-            sender.sendMessage(MessageUtils.getColoredMessage("&aMensaje enviado al jugador " + player.getName() + "."));
         }
 
         return true;

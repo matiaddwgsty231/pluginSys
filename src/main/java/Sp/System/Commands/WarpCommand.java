@@ -193,7 +193,7 @@ public class WarpCommand implements CommandExecutor {
             return;
         }
 
-        int countdownTime = plugin.getConfig().getInt("WARP.TELEPORT_DELAY", 10);// Tiempo de espera en segundos
+        int countdownTime = warpsConfig.getInt("WARP.TELEPORT_DELAY", 10); // Tiempo de cuenta atrás en segundos
         player.sendMessage(MessageUtils.getColoredMessage(warpsConfig.getString("WARP.TELEPORTING", "&eSerás teletransportado al warp {warp} en {time} segundos...")
                 .replace("{warp}", warpName)
                 .replace("{time}", String.valueOf(countdownTime))));
@@ -246,11 +246,11 @@ public class WarpCommand implements CommandExecutor {
 
     public boolean isInCooldown(Player player) {
         return warpCooldowns.containsKey(player.getUniqueId()) &&
-                (System.currentTimeMillis() - warpCooldowns.get(player.getUniqueId())) < plugin.getConfig().getInt("WARP.COOLDOWN", 5) * 1000;
+                (System.currentTimeMillis() - warpCooldowns.get(player.getUniqueId())) < plugin.getCustomConfig("warps.yml").getInt("WARP.COOLDOWN", 5) * 1000;
     }
 
     public long getCooldownTimeLeft(Player player) {
-        long cooldown = plugin.getConfig().getInt("WARP.COOLDOWN", 5) * 1000;
+        long cooldown = plugin.getCustomConfig("warps.yml").getInt("WARP.COOLDOWN", 5) * 1000;
         return (cooldown - (System.currentTimeMillis() - warpCooldowns.get(player.getUniqueId()))) / 1000;
     }
 

@@ -19,9 +19,9 @@ commands:
     usage: /enderchest
     aliases:
       - ec
-  tienda:
-    description: Acceso a la tienda.
-    usage: /tienda
+  Fly:
+    description: Activar o desactivar el vuelo.
+    usage: /fly
   togglezone:
     description: Activa o desactiva zonas específicas.
     usage: /togglezone
@@ -45,8 +45,8 @@ commands:
     usage: /warp <warp>
     aliases:
       - warps
-      - Menu
-      - warpsmenu
+      - menu
+      - principal
   warpcreate:
     description: Crear un nuevo warp.
     usage: /warpcreate <nombre> <warp/command> <slot> <permiso>
@@ -62,3 +62,8 @@ commands:
   hcreload:
     description: Recargar la configuración del HideCommand.
     usage: /hcreload
+  orden:
+    description: Abre un menú específico.
+    usage: /oeden
+
+

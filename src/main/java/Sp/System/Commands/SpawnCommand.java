@@ -122,7 +122,11 @@ public class SpawnCommand implements CommandExecutor, Listener {
         } else {
             sender.sendMessage(MessageUtils.getColoredMessage(prefix + "&cUso incorrecto del comando."));
             sender.sendMessage(MessageUtils.getColoredMessage("&7 /spawn"));
+            if (!sender.hasPermission("System.Command.SpawnAdmin"))
+                return true;
             sender.sendMessage(MessageUtils.getColoredMessage("&7 /spawn <jugador>"));
+            if (!sender.hasPermission("System.Command.Setspawn"))
+                return true;
             sender.sendMessage(MessageUtils.getColoredMessage("&7 /spawn setspawn"));
         }
 

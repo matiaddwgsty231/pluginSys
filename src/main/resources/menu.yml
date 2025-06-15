@@ -1,0 +1,21 @@
+menus:
+  main:
+    title: "&6&lMenú Principal"
+    size: 27
+    items:
+      cabeza_dragon:
+        material: HD-12345  # Sin comillas
+        slot: 11
+        name: "&5Cabeza de Dragón"
+        lore:
+          - "&7Cabeza especial de HeadDatabase"
+
+      diamante:
+        material: DIAMOND  # Material normal sin comillas
+        slot: 15
+        name: "&bBloque de Diamante"
+
+      piedra:
+        material: 1  # ID numérico (STONE)
+        slot: 22
+        name: "&7Piedra Legacy"

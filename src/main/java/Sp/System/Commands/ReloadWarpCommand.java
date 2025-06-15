@@ -16,13 +16,17 @@ public class ReloadWarpCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player) || sender.hasPermission("warp.reload")) {
-            plugin.reloadConfig(); // Recarga el archivo de configuración principal
-            plugin.reloadCustomConfig("warps.yml"); // Recarga el archivo `warps.yml`
-            sender.sendMessage("§aLa configuración de los warps se ha recargado correctamente.");
+        // Verificar si el sender tiene permiso
+        if (!sender.hasPermission("warp.reload")) {
+            sender.sendMessage("§cNo tienes permiso para ejecutar este comando.");
             return true;
         }
-        sender.sendMessage("§cNo tienes permiso para ejecutar este comando.");
-        return false;
+
+        // Recargar configuraciones
+        plugin.reloadConfig(); // Recarga el archivo de configuración principal
+        plugin.reloadCustomConfig("warps.yml"); // Recarga el archivo `warps.yml`
+
+        sender.sendMessage("§aLa configuración de los warps se ha recargado correctamente.");
+        return true;
     }
 }

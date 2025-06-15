@@ -50,6 +50,10 @@ public class CommandHandler implements CommandExecutor, Listener {
     }
 
     private boolean handleTpaRequest(Player sender, String[] args) {
+        if (!sender.hasPermission("System.Commands.Tpa")) {
+            sender.sendMessage(ChatColor.RED + "No tienes permiso para usar este comando.");
+            return true;
+        }
         if (args.length != 1) {
             sender.sendMessage(ChatColor.RED + "Uso: /tpa <jugador>");
             return true;
